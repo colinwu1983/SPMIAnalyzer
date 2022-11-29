@@ -5,16 +5,16 @@
 
 SPMIAnalyzerSettings::SPMIAnalyzerSettings() : mSdaChannel( UNDEFINED_CHANNEL ), mSclChannel( UNDEFINED_CHANNEL )
 {
-    mSdaChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-    mSdaChannelInterface->SetTitleAndTooltip( "SDA", "Serial Data Line" );
-    mSdaChannelInterface->SetChannel( mSdaChannel );
-
     mSclChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
     mSclChannelInterface->SetTitleAndTooltip( "SCL", "Serial Clock Line" );
     mSclChannelInterface->SetChannel( mSclChannel );
 
-    AddInterface( mSdaChannelInterface.get() );
+    mSdaChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+    mSdaChannelInterface->SetTitleAndTooltip( "SDA", "Serial Data Line" );
+    mSdaChannelInterface->SetChannel( mSdaChannel );
+
     AddInterface( mSclChannelInterface.get() );
+    AddInterface( mSdaChannelInterface.get() );
 
     // AddExportOption( 0, "Export as text/csv file", "text (*.txt);;csv (*.csv)" );
     AddExportOption( 0, "Export as text/csv file" );
