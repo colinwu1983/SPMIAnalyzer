@@ -280,48 +280,55 @@ void SPMIAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase
     ClearTabularText();
 
     Frame frame = GetFrame( frame_index );
-
-    char ack[ 32 ];
-    if( ( frame.mFlags & SPMI_FLAG_ACK ) != 0 )
-        snprintf( ack, sizeof( ack ), "ACK" );
-    else if( ( frame.mFlags & SPMI_MISSING_FLAG_ACK ) != 0 )
-        snprintf( ack, sizeof( ack ), "Missing ACK/NAK" );
-    else
-        snprintf( ack, sizeof( ack ), "NAK" );
-
-    if( frame.mType == SPMIAddress )
-    {
+    std::stringstream ss;
+    // std::stringstream str1, str2, str3;
+    // static std::stringstream str1, str2, str3;
+    if( frame.mType == SPMIslaveaddr ) {
         char number_str[ 128 ];
-        // AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 8, number_str, 128 );
-        AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 13, number_str, 128 );
+        AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 4, number_str, 128 );
 
-        SPMIDirection direction;
-        if( ( frame.mData1 & 0x1 ) != 0 )
-            direction = SPMI_READ;
-        else
-            direction = SPMI_WRITE;
-
-        if( direction == SPMI_READ )
-        {
-            std::stringstream ss;
-            ss << "Setup Read to [" << number_str << "] + " << ack;
-            AddTabularText( ss.str().c_str() );
-        }
-        else
-        {
-            std::stringstream ss;
-            ss << "Setup Write to [" << number_str << "] + " << ack;
-            AddTabularText( ss.str().c_str() );
-        }
+        ss << "SA [" << number_str << "]";
+        // str1 << "SA [" << number_str << "]";
+        // AddTabularText( ss.str().c_str() );
+        // ClearTabularText();
+    }
+    else if( frame.mType == SPMIcmd ) {
+        char number_str[ 128 ];
+        AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 8, number_str, 128 );
+        ss << "CMD [" << number_str << "]";
+        // str2 << "CMD [" << number_str << "]";
+        // AddTabularText( ss.str().c_str() );
+        // ClearTabularText();
+    }
+    else if( frame.mType == SPMIregaddr ) {
+        char number_str[ 128 ];
+        U64 regaddr = ((frame.mData1 >> 1 ) & 0xFF) + (((frame.mData1 >> 10 ) & 0xFF) << 8);
+        AnalyzerHelpers::GetNumberString( regaddr, display_base, 16, number_str, 128 );
+        ss << "REG [" << number_str << "]";
+        // str3 << "REG [" << number_str << "]";
+        // AddTabularText( ss.str().c_str() );
+        // ClearTabularText();
+    }
+    else if( frame.mType == SPMIregwritedata ) {
+        char number_str[ 128 ];
+        AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 8, number_str, 128 );
+        ss << "D [" << number_str << "]";
+        // AddTabularText( ss.str().c_str(), str1.str().c_str(), str2.str().c_str(), str3.str().c_str() );
+        // ClearTabularText();
+    }
+    else if( frame.mType == SPMIregreaddata ) {
+        char number_str[ 128 ];
+        AnalyzerHelpers::GetNumberString( (frame.mData1 >> 1) & 0xFF, display_base, 8, number_str, 128 );
+        ss << "D [" << number_str << "]";
+        // AddTabularText( ss.str().c_str(), str1.str().c_str(), str2.str().c_str(), str3.str().c_str() );
+        // ClearTabularText();
+        // AddTabularText( ss.str().c_str() );
     }
     else
     {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-        std::stringstream ss;
-        ss << number_str << " + " << ack;
-        AddTabularText( ss.str().c_str() );
+        ss << "WFC";
     }
+    AddTabularText( ss.str().c_str() );
 }
 
 void SPMIAnalyzerResults::GeneratePacketTabularText( U64 /*packet_id*/,
