@@ -15,8 +15,9 @@ SPMIAnalyzerResults::~SPMIAnalyzerResults()
 {
 }
 
-void SPMIAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channel*/,
-                                             DisplayBase display_base ) // unrefereced vars commented out to remove warnings.
+// void SPMIAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channel*/,
+//                                              DisplayBase display_base ) // unrefereced vars commented out to remove warnings.
+/*
 {
     // we only need to pay attention to 'channel' if we're making bubbles for more than one channel (as set by
     // AddChannelBubblesWillAppearOn)
@@ -188,6 +189,51 @@ void SPMIAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channe
         AddResultString( ss.str().c_str() );
     }
 }
+
+*/
+
+void SPMIAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channel*/,
+                                             DisplayBase display_base ) // unrefereced vars commented out to remove warnings.
+{
+    // we only need to pay attention to 'channel' if we're making bubbles for more than one channel (as set by
+    // AddChannelBubblesWillAppearOn)
+    ClearResultStrings();
+    Frame frame = GetFrame( frame_index );
+
+#if 0
+    char number_str[ 128 ];
+    AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 64, number_str, 128 );
+    std::stringstream ss;
+    AddResultString( "SA" );
+
+    // ss << "SSC[" << number_str << "]";
+    ss << "SA";
+    AddResultString( ss.str().c_str() );
+    ss.str( "" );
+
+    ss << "SA [" << number_str << "]";
+    AddResultString( ss.str().c_str() );
+    ss.str( "" );
+#endif
+
+    char slaveAddr[4];
+    AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 4, slaveAddr, 128 );
+    char cmd[8];
+    AnalyzerHelpers::GetNumberString( frame.mData1 >> 5, display_base, 8, cmd, 128 );
+    char regAddr[8];
+    AnalyzerHelpers::GetNumberString( frame.mData1 >> (SPMI_SLAVE_ADDR_LEN + SPMI_CMD_LEN + 1), display_base, 16, regAddr, 128 );
+
+    std::stringstream ss;
+    ss << "SA " << slaveAddr <<" CMD " << cmd << " REG " << regAddr;
+    AddResultString( ss.str().c_str() );
+    ss.str( "" );
+
+    // ss << "Setup Read to [" << number_str << "] + " << ack;
+    // AddResultString( ss.str().c_str() );
+    
+  
+}
+
 
 void SPMIAnalyzerResults::GenerateExportFile( const char* file, DisplayBase display_base, U32 /*export_type_user_id*/ )
 {

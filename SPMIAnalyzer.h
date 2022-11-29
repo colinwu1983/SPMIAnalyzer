@@ -25,6 +25,11 @@
 #define spmi_master_read_l  0x15 // Master Read lowest
 #define spmi_master_read_h  0x15 // Master Read highest
 
+#define SPMI_SLAVE_ADDR_LEN 4
+#define SPMI_CMD_LEN 9
+#define SPMI_REG_ADDR_LEN 18
+#define SPMI_DATA_LEN 8
+
 class SPMIAnalyzerSettings;
 class SPMIAnalyzer : public Analyzer2
 {

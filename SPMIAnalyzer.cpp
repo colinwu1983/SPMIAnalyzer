@@ -33,6 +33,7 @@ void SPMIAnalyzer::WorkerThread()
         AdvanceToStartBit();
         // mScl->AdvanceToNextEdge(); // now scl is low.
         U64 SlaveAddr = GetFrame(4, SPMIslaveaddr);
+#if 0
         U64 cmd = GetFrame(9, SPMIcmd);
         
         //
@@ -54,12 +55,123 @@ void SPMIAnalyzer::WorkerThread()
             GetFrame(9, SPMIregaddr);
             GetFrame(9 + BC * 8, SPMIregwritedata);
         }
-        
+#endif        
         CheckIfThreadShouldExit();
     }
 }
 
 U64 SPMIAnalyzer::GetFrame(U8 frameLength, SPMIFrameType frameType)
+{
+    mArrowLocations.clear();
+    U8 local_Length, curbit;
+    U64 value;
+    U32 i = 0;
+    // DataBuilder byte;
+    // byte.Reset( &value, AnalyzerEnums::MsbFirst, frameLength );
+    U64 starting_sample = mScl->GetSampleNumber();
+    U64 ex_sample;
+
+
+    mScl->AdvanceToNextEdge(); //rise edge
+    if( mScl->GetBitState() == BIT_LOW ) return 0; //oops NG, not rise edge
+
+    // 4bit slaveAddr
+    local_Length = SPMI_SLAVE_ADDR_LEN;
+    curbit = SPMI_SLAVE_ADDR_LEN;
+    for(i = 0; i < local_Length; i++ ) {
+        ex_sample = mScl->GetSampleNumber();
+        mScl->AdvanceToNextEdge(); //rise edge
+        mArrowLocations.push_back( mScl->GetSampleNumber());
+        mSda->AdvanceToAbsPosition(mScl->GetSampleNumber());
+        BitState bit_state = mSda->GetBitState();
+        value += ((bit_state == BIT_LOW) ? 0:1) << (curbit - i - 1);
+        // byte.AddBit(bit_state);
+        mScl->AdvanceToNextEdge(); //fall edge
+    }
+    U8 slaveAddr = value;
+
+    // 9bit cmd + Parity
+    local_Length = SPMI_CMD_LEN;
+    curbit += SPMI_CMD_LEN;
+    for(i = 0; i < local_Length; i++ ) {
+        ex_sample = mScl->GetSampleNumber();
+        mScl->AdvanceToNextEdge(); //rise edge
+        mArrowLocations.push_back( mScl->GetSampleNumber());
+        mSda->AdvanceToAbsPosition(mScl->GetSampleNumber());
+        BitState bit_state = mSda->GetBitState();
+        value += ((bit_state == BIT_LOW) ? 0:1) << (curbit - i - 1);
+        mScl->AdvanceToNextEdge(); //fall edge
+    }
+    U8 cmd = value >> (SPMI_SLAVE_ADDR_LEN + 1);
+
+    U8 BC = 0;
+    // Extended Register Write Long 
+    if ((cmd >= spmi_ext_reg_write_long_l) && 
+        (cmd <= spmi_ext_reg_write_long_h)) {
+        BC = cmd & 0xf;
+    }
+    // Extended Register Read Long 
+    else if ((cmd >= spmi_ext_reg_read_long_l) && 
+        (cmd <= spmi_ext_reg_read_long_h)) {
+        BC = cmd & 0xf;
+    }
+    // WIP, currently only support extended register read/write
+    else {
+        return value;
+    }
+
+    local_Length = SPMI_REG_ADDR_LEN;
+    curbit += SPMI_REG_ADDR_LEN;
+    for(i = 0; i < local_Length; i++ ) {
+        ex_sample = mScl->GetSampleNumber();
+        mScl->AdvanceToNextEdge(); //rise edge
+        mArrowLocations.push_back( mScl->GetSampleNumber());
+        mSda->AdvanceToAbsPosition(mScl->GetSampleNumber());
+        BitState bit_state = mSda->GetBitState();
+        value += ((bit_state == BIT_LOW) ? 0:1) << (curbit - i - 1);
+        mScl->AdvanceToNextEdge(); //fall edge
+    }
+    U32 regAddr = value >> (SPMI_SLAVE_ADDR_LEN + SPMI_CMD_LEN + 1);
+
+#if 0
+    local_Length = SPMI_DATA_LEN * (BC + 1) + 1;
+    curbit += SPMI_DATA_LEN * (BC + 1) + 1;
+    for(; i < local_Length; i++ ) {
+        ex_sample = mScl->GetSampleNumber();
+        mScl->AdvanceToNextEdge(); //rise edge
+        mArrowLocations.push_back( mScl->GetSampleNumber());
+        mSda->AdvanceToAbsPosition(mScl->GetSampleNumber());
+        BitState bit_state = mSda->GetBitState();
+        value += ((bit_state == BIT_LOW) ? 0:1) << (curbit - i - 1);
+        mScl->AdvanceToNextEdge(); //fall edge
+    }
+    U32 data = value >> (SPMI_SLAVE_ADDR_LEN + SPMI_CMD_LEN + SPMI_REG_ADDR_LEN + 1);
+#endif
+    U64 ending_sample = mScl->GetSampleNumber();;
+    // if (frameType == SPMIslaveaddr) //w/o Parity
+    //     ending_sample = mScl->GetSampleNumber();
+    // else //with Parity
+    //     ending_sample = ex_sample;
+
+    Frame frame;
+    frame.mStartingSampleInclusive = starting_sample;
+    frame.mEndingSampleInclusive = ending_sample;
+    frame.mData1 = value;
+    frame.mType = frameType;
+    mResults->AddFrame( frame );
+
+    U32 count = mArrowLocations.size();
+    for( U32 i = 0; i < count; i++ ) {
+        mResults->AddMarker( mArrowLocations[ i ], AnalyzerResults::DownArrow, mSettings->mSclChannel );
+    }
+    mResults->CommitResults();
+
+    return value;
+
+}
+
+/*
+U64 SPMIAnalyzer::GetFrameold(U8 frameLength, SPMIFrameType frameType)
 {
     mArrowLocations.clear();
     U64 value;
@@ -104,6 +216,8 @@ U64 SPMIAnalyzer::GetFrame(U8 frameLength, SPMIFrameType frameType)
     return value;
 
 }
+*/
+
 
 void SPMIAnalyzer::GetFrameTest()
 {
