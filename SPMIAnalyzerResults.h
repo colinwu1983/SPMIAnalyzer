@@ -8,15 +8,8 @@
 
 enum SPMIFrameType
 {
-    SPMIAddress, //old, not used
-    SPMIData, //old, not used
-    SPMIcwutest,
-    SPMIslaveaddr, //cmd frame has 4bit address field
-    SPMIcmd, //cmd frame has 8bit cmd field, and a single parity bit
-    SPMIregaddr, //data or addr frame, 8bit, and a single parity bit
-    SPMIregwritedata,
-    SPMIregreaddata,
-    SPMInoresp, //no response frame, 9bit for data frame, 13 bit for cmd frame
+    SPMISingleData, 
+    SPMIMultiData
 };
 
 class SPMIAnalyzer;

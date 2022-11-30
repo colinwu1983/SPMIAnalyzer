@@ -88,32 +88,26 @@ U64 SPMIAnalyzer::GetFrame(void)
     }
     s.map.Data0 = GetData(SPMI_LEN_DATA);
     s.map.p_Data0 = GetData(SPMI_LEN_PARITY);
-    switch (BC) {
-    case 0:
-        break;
-    case 1:
-        s.map.Data1 = GetData(SPMI_LEN_DATA);
-        s.map.p_Data1 = GetData(SPMI_LEN_PARITY);
-        break;
-    case 2:
-        s.map.Data1 = GetData(SPMI_LEN_DATA);
-        s.map.p_Data1 = GetData(SPMI_LEN_PARITY);
-        s.map.Data2 = GetData(SPMI_LEN_DATA);
-        s.map.p_Data2 = GetData(SPMI_LEN_PARITY);
-        break;
-    case 3:
-        // to be developed
-        break;
-    }
-    U64 ending_sample = mScl->GetSampleNumber();
 
     Frame frame;
-    frame.mStartingSampleInclusive = starting_sample;
-    frame.mEndingSampleInclusive = ending_sample;
-    
     frame.mData1 = s.data;
-    frame.mData2 = s.map.Data1;
-    frame.mType = SPMIcwutest;
+    if (BC) {
+        frame.mType = SPMIMultiData;
+        for (U8 i=0; i < BC; i++) {
+            U8 val = 0;
+            U8 p_val = 0;
+            val = GetData(SPMI_LEN_DATA);
+            p_val = GetData(SPMI_LEN_PARITY);
+            frame.mData2 += val << i * 8;
+        }
+    }
+    else {
+        frame.mType = SPMISingleData;
+    }
+    frame.mStartingSampleInclusive = starting_sample;
+    U64 ending_sample = mScl->GetSampleNumber();
+    frame.mEndingSampleInclusive = ending_sample;
+
     mResults->AddFrame( frame );
 
     //to be improved
