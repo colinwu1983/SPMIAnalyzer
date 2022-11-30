@@ -25,10 +25,34 @@
 #define spmi_master_read_l  0x15 // Master Read lowest
 #define spmi_master_read_h  0x15 // Master Read highest
 
-#define SPMI_SLAVE_ADDR_LEN 4
-#define SPMI_CMD_LEN 9
-#define SPMI_REG_ADDR_LEN 18
-#define SPMI_DATA_LEN 8
+#define SPMI_LEN_SLAVE_ADDR 4
+#define SPMI_LEN_CMD 8
+#define SPMI_LEN_REG_ADDR 8
+#define SPMI_LEN_DATA 8
+#define SPMI_LEN_PARITY 1
+
+typedef union _SPMI_FRAME {
+    struct {
+        U8 slaveAddr : 4; //4
+        U8 cmd: 8; //12
+        U8 p_cmd : 1; //13
+        U8 extregAddrH: 8; //21
+        U8 p_extregAddrH: 1; //22
+        U8 extregAddrL: 8; //30
+        U8 p_extregAddrL: 1; //31
+        U8 isWrite: 1; //59
+        U8 park: 1; //60
+        U8 Data0: 8; //39
+        U8 p_Data0: 1; //40
+        U8 Data1: 8; //48
+        U8 p_Data1: 1; //49     
+        U8 Data2: 8; //57
+        U8 p_Data2: 1; //58     
+        // U8 :24;
+    } map;
+
+    U64 data;
+} SPMI_FRAME;
 
 class SPMIAnalyzerSettings;
 class SPMIAnalyzer : public Analyzer2
@@ -55,6 +79,7 @@ class SPMIAnalyzer : public Analyzer2
     void GetFrameTest();
     U64 GetFrame(U8 frameLength, SPMIFrameType frameType);
     void GetByte();
+    U8 GetData(U8 len);
     bool GetBit( BitState& bit_state, U64& sck_rising_edge );
     bool GetBitPartOne( BitState& bit_state, U64& sck_rising_edge, U64& frame_end_sample );
     bool GetBitPartTwo();

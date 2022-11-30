@@ -15,182 +15,6 @@ SPMIAnalyzerResults::~SPMIAnalyzerResults()
 {
 }
 
-// void SPMIAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channel*/,
-//                                              DisplayBase display_base ) // unrefereced vars commented out to remove warnings.
-/*
-{
-    // we only need to pay attention to 'channel' if we're making bubbles for more than one channel (as set by
-    // AddChannelBubblesWillAppearOn)
-    ClearResultStrings();
-    Frame frame = GetFrame( frame_index );
-
-    char ack[ 32 ];
-    if( ( frame.mFlags & SPMI_FLAG_ACK ) != 0 )
-        snprintf( ack, sizeof( ack ), "ACK" );
-    else if( ( frame.mFlags & SPMI_MISSING_FLAG_ACK ) != 0 )
-        snprintf( ack, sizeof( ack ), "Missing ACK/NAK" );
-    else
-        snprintf( ack, sizeof( ack ), "NAK" );
-
-    if( frame.mType == SPMIcwutest ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-        std::stringstream ss;
-        AddResultString( "SSC" );
-
-        // ss << "SSC[" << number_str << "]";
-        ss << "S";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        ss << "SSC [" << number_str << "]";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        // ss << "SSC [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-        // ss.str( "" );
-
-        // ss << "Setup Read to [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-    
-    }
-    else if( frame.mType == SPMIslaveaddr ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 4, number_str, 128 );
-        std::stringstream ss;
-        AddResultString( "SA" );
-
-        // ss << "SSC[" << number_str << "]";
-        ss << "SA";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        ss << "SA [" << number_str << "]";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        // ss << "SSC [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-        // ss.str( "" );
-
-        // ss << "Setup Read to [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-    
-    }
-    else if( frame.mType == SPMIcmd ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 8, number_str, 128 );
-        std::stringstream ss;
-        AddResultString( "C" );
-
-        // ss << "SSC[" << number_str << "]";
-        ss << "C";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        ss << "CMD [" << number_str << "]";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        // ss << "SSC [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-        // ss.str( "" );
-
-        // ss << "Setup Read to [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-    
-    }
-    else if( frame.mType == SPMIregaddr ) {
-        char number_str[ 128 ];
-        U64 regaddr = ((frame.mData1 >> 1 ) & 0xFF) + (((frame.mData1 >> 10 ) & 0xFF) << 8);
-        // U64 regaddr = (((frame.mData1 >> 10 ) & 0xFF) << 8);
-        // AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 17, number_str, 128 );
-        AnalyzerHelpers::GetNumberString( regaddr, display_base, 16, number_str, 128 );
-        // AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 18, number_str, 128 );
-        std::stringstream ss;
-        AddResultString( "REG" );
-
-        // ss << "SSC[" << number_str << "]";
-        ss << "REG";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        ss << "REG [" << number_str << "]";
-        // ss << "RA " << number_str ;
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        // ss << "SSC [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-        // ss.str( "" );
-
-        // ss << "Setup Read to [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-    
-    }
-    else if( frame.mType == SPMIregwritedata ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 8, number_str, 128 );
-        std::stringstream ss;
-        AddResultString( "D" );
-
-        // ss << "SSC[" << number_str << "]";
-        ss << "D";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        ss << "D [" << number_str << "]";
-        // ss << "RA " << number_str ;
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        // ss << "SSC [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-        // ss.str( "" );
-
-        // ss << "Setup Read to [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-    
-    }
-    else if( frame.mType == SPMIregreaddata ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( (frame.mData1 >> 1) & 0xFF, display_base, 8, number_str, 128 );
-        std::stringstream ss;
-        AddResultString( "D" );
-
-        // ss << "SSC[" << number_str << "]";
-        ss << "D";
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        ss << "D [" << number_str << "]";
-        // ss << "RA " << number_str ;
-        AddResultString( ss.str().c_str() );
-        ss.str( "" );
-
-        // ss << "SSC [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-        // ss.str( "" );
-
-        // ss << "Setup Read to [" << number_str << "] + " << ack;
-        // AddResultString( ss.str().c_str() );
-    
-    }
-    else
-    {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
-
-        AddResultString( number_str );
-
-        std::stringstream ss;
-        ss << number_str << " + " << ack;
-        AddResultString( ss.str().c_str() );
-    }
-}
-
-*/
 
 void SPMIAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channel*/,
                                              DisplayBase display_base ) // unrefereced vars commented out to remove warnings.
@@ -200,38 +24,72 @@ void SPMIAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& /*channe
     ClearResultStrings();
     Frame frame = GetFrame( frame_index );
 
-#if 0
-    char number_str[ 128 ];
-    AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 64, number_str, 128 );
-    std::stringstream ss;
-    AddResultString( "SA" );
-
-    // ss << "SSC[" << number_str << "]";
-    ss << "SA";
-    AddResultString( ss.str().c_str() );
-    ss.str( "" );
-
-    ss << "SA [" << number_str << "]";
-    AddResultString( ss.str().c_str() );
-    ss.str( "" );
-#endif
-
+    SPMI_FRAME s;
+    s.data = frame.mData1;
     char slaveAddr[4];
-    AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 4, slaveAddr, 128 );
+    AnalyzerHelpers::GetNumberString( s.map.slaveAddr, display_base, 4, slaveAddr, 128 );
     char cmd[8];
-    AnalyzerHelpers::GetNumberString( frame.mData1 >> 5, display_base, 8, cmd, 128 );
-    char regAddr[8];
-    AnalyzerHelpers::GetNumberString( frame.mData1 >> (SPMI_SLAVE_ADDR_LEN + SPMI_CMD_LEN + 1), display_base, 16, regAddr, 128 );
+    AnalyzerHelpers::GetNumberString( s.map.cmd, display_base, 8, cmd, 128 );
+    char regAddrH[8];
+    AnalyzerHelpers::GetNumberString( s.map.extregAddrH, display_base, 8, regAddrH, 128 );
+    char regAddrL[8];
+    AnalyzerHelpers::GetNumberString( s.map.extregAddrL, display_base, 8, regAddrL, 128 );
+    char data0[8], data1[8], data2[8];
+    AnalyzerHelpers::GetNumberString( s.map.Data0, display_base, 8, data0, 128 );
+
+    U8 BC = s.map.cmd & 0x7;
+    switch (BC) {
+    case 0:
+        break;
+    case 1:
+        // AnalyzerHelpers::GetNumberString( s.map.Data1, display_base, 8, data1, 128 );
+        AnalyzerHelpers::GetNumberString( frame.mData2, display_base, 8, data1, 128 );
+        data0[4] = data1[2];
+        data0[5] = data1[3];
+        break;
+    case 2:
+        AnalyzerHelpers::GetNumberString( s.map.Data1, display_base, 8, data1, 128 );
+        AnalyzerHelpers::GetNumberString( s.map.Data2, display_base, 8, data2, 128 );
+        data0[4] = data1[2];
+        data0[5] = data1[3]; 
+        //never tested
+        data0[6] = data2[2]; 
+        data0[7] = data2[3]; 
+        break;
+    case 3:
+        // to be developed
+        break;
+    }
 
     std::stringstream ss;
-    ss << "SA " << slaveAddr <<" CMD " << cmd << " REG " << regAddr;
+    if (s.map.isWrite) {
+        AddResultString("W");
+    }
+    else {
+        AddResultString("R");
+    }
+    ss.str( "" );
+    if (s.map.isWrite) {
+        ss <<"W " << " REG " << regAddrH << regAddrL[2]  << regAddrL[3] << " D " << data0;
+    }
+    else {
+        ss <<"R " << " REG " << regAddrH << regAddrL[2]  << regAddrL[3] << " D " << data0;
+    }
+    AddResultString( ss.str().c_str() );
+    ss.str( "" );
+    ss << "SLAVE " << slaveAddr <<" CMD " << cmd << " REG " << regAddrH << regAddrL[2]  << regAddrL[3] << " DATA " << data0;
+    AddResultString( ss.str().c_str() );
+    ss.str( "" );
+    if (s.map.isWrite) {
+        ss << "SLAVE " << slaveAddr <<" CMD " << cmd << " WRITE REG " << regAddrH << regAddrL[2]  << regAddrL[3] << " DATA " << data0;
+        // ss << "SLAVE " <<  data1 <<" CMD " << data2 << " WRITE REG " << regAddrH << regAddrL[2]  << regAddrL[3] << " DATA " << data0;
+    }
+    else {
+        ss << "SLAVE " << slaveAddr <<" CMD " << cmd << " READ REG " << regAddrH << regAddrL[2]  << regAddrL[3] << " DATA " << data0;
+    }
     AddResultString( ss.str().c_str() );
     ss.str( "" );
 
-    // ss << "Setup Read to [" << number_str << "] + " << ack;
-    // AddResultString( ss.str().c_str() );
-    
-  
 }
 
 
@@ -327,53 +185,26 @@ void SPMIAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase
 
     Frame frame = GetFrame( frame_index );
     std::stringstream ss;
-    // std::stringstream str1, str2, str3;
-    // static std::stringstream str1, str2, str3;
-    if( frame.mType == SPMIslaveaddr ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 4, number_str, 128 );
+    SPMI_FRAME s;
+    s.data = frame.mData1;
+    char slaveAddr[4];
+    AnalyzerHelpers::GetNumberString( s.map.slaveAddr, display_base, 4, slaveAddr, 128 );
+    char cmd[8];
+    AnalyzerHelpers::GetNumberString( s.map.cmd, display_base, 8, cmd, 128 );
+    char regAddrH[8];
+    AnalyzerHelpers::GetNumberString( s.map.extregAddrH, display_base, 8, regAddrH, 128 );
+    char regAddrL[8];
+    AnalyzerHelpers::GetNumberString( s.map.extregAddrL, display_base, 8, regAddrL, 128 );
+    char data0[8];
+    AnalyzerHelpers::GetNumberString( s.map.Data0, display_base, 8, data0, 128 );
 
-        ss << "SA [" << number_str << "]";
-        // str1 << "SA [" << number_str << "]";
-        // AddTabularText( ss.str().c_str() );
-        // ClearTabularText();
+    if (s.map.isWrite) {
+        ss << "W " << slaveAddr << " " << regAddrH << regAddrL[2]  << regAddrL[3] << " " << data0;
     }
-    else if( frame.mType == SPMIcmd ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 8, number_str, 128 );
-        ss << "CMD [" << number_str << "]";
-        // str2 << "CMD [" << number_str << "]";
-        // AddTabularText( ss.str().c_str() );
-        // ClearTabularText();
+    else {
+        ss << "R " << slaveAddr << " " << regAddrH << regAddrL[2]  << regAddrL[3] << " " << data0;
     }
-    else if( frame.mType == SPMIregaddr ) {
-        char number_str[ 128 ];
-        U64 regaddr = ((frame.mData1 >> 1 ) & 0xFF) + (((frame.mData1 >> 10 ) & 0xFF) << 8);
-        AnalyzerHelpers::GetNumberString( regaddr, display_base, 16, number_str, 128 );
-        ss << "REG [" << number_str << "]";
-        // str3 << "REG [" << number_str << "]";
-        // AddTabularText( ss.str().c_str() );
-        // ClearTabularText();
-    }
-    else if( frame.mType == SPMIregwritedata ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( frame.mData1 >> 1, display_base, 8, number_str, 128 );
-        ss << "D [" << number_str << "]";
-        // AddTabularText( ss.str().c_str(), str1.str().c_str(), str2.str().c_str(), str3.str().c_str() );
-        // ClearTabularText();
-    }
-    else if( frame.mType == SPMIregreaddata ) {
-        char number_str[ 128 ];
-        AnalyzerHelpers::GetNumberString( (frame.mData1 >> 1) & 0xFF, display_base, 8, number_str, 128 );
-        ss << "D [" << number_str << "]";
-        // AddTabularText( ss.str().c_str(), str1.str().c_str(), str2.str().c_str(), str3.str().c_str() );
-        // ClearTabularText();
-        // AddTabularText( ss.str().c_str() );
-    }
-    else
-    {
-        ss << "WFC";
-    }
+ 
     AddTabularText( ss.str().c_str() );
 }
 
