@@ -76,14 +76,8 @@ class SPMIAnalyzer : public Analyzer2
 
   protected: // functions
     void AdvanceToStartBit();
-    void GetFrameTest();
-    U64 GetFrame(U8 frameLength, SPMIFrameType frameType);
-    void GetByte();
+    U64 GetFrame(void);
     U8 GetData(U8 len);
-    bool GetBit( BitState& bit_state, U64& sck_rising_edge );
-    bool GetBitPartOne( BitState& bit_state, U64& sck_rising_edge, U64& frame_end_sample );
-    bool GetBitPartTwo();
-    void RecordStartStopBit();
 
   protected: // vars
     std::auto_ptr<SPMIAnalyzerSettings> mSettings;
